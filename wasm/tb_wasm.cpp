@@ -17,6 +17,8 @@ EMSCRIPTEN_KEEPALIVE void tb_tick(double dt, double now) { g.tick(dt, now); }
 EMSCRIPTEN_KEEPALIVE const uint8_t* tb_render() { return g.render(); }
 // ODPT の odpt:Bus。戻り値は地図に載ったバスの数。取れなかったときは tb_fail
 EMSCRIPTEN_KEEPALIVE int tb_buses(const char* json) { return g.set_buses(json); }
+// 東京都の外周と 23 区の区界（data/admin_tokyo.txt）。戻り値は読み込んだ輪の数。目印として薄く描く
+EMSCRIPTEN_KEEPALIVE int tb_admin(const char* text) { return g.load_admin(text); }
 EMSCRIPTEN_KEEPALIVE void tb_fail() { g.fetch_failed(); }
 // 操作。tb_hit はその点にボタンや一覧があるか（あればドラッグを始めない）
 EMSCRIPTEN_KEEPALIVE void tb_hover(double x, double y) { g.hover(x, y); }

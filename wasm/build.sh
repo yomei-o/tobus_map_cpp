@@ -10,5 +10,6 @@ EMCC="$EMSDK/upstream/emscripten/emcc.exe"
   -s EXPORTED_RUNTIME_METHODS='["HEAPU8","UTF8ToString","stringToUTF8","lengthBytesUTF8"]' -s EXPORTED_FUNCTIONS='["_malloc","_free"]' \
   wasm/tb_wasm.cpp -o docs/tb.js
 cp data/tobus.txt docs/tobus.txt
+cp data/admin_tokyo.txt docs/admin_tokyo.txt
 cp fonts/NotoSansJP-Bold-subset.ttf docs/font.ttf
 echo "built docs/tb.js"

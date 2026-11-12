@@ -64,5 +64,6 @@ python tools/subset_font.py "NotoSansJP[wght].ttf" data/tobus.txt fonts/NotoSans
 - コード: BSD-3-Clause（`LICENSE`）
 - バスの位置・系統・バス停: 公共交通オープンデータセンター（ODPT）を通じて東京都交通局が提供するデータを使用（`data/tobus.txt` はそれを加工したもの）。内容の正確さ・完全さは保証されません
 - 地下鉄の線路: 「国土数値情報（鉄道データ）」（国土交通省）N02-24 を加工して作成（CC BY 4.0）
+- 東京都の外周と 23 区の区界（目印として薄く描く）: 「国土数値情報（行政区域データ）」（国土交通省）N03（2025-01-01、東京都）を加工して作成（CC BY 4.0）。`data/admin_tokyo.txt`（`tools/build_admin.py`）
 - 文字: Noto Sans JP（SIL Open Font License 1.1、`fonts/OFL.txt`）
 - stb_truetype / stb_image_write: パブリックドメイン（または MIT）、nlohmann/json 3.12.0: MIT

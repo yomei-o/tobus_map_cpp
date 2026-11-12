@@ -139,6 +139,8 @@ addEventListener('resize', () => { if (M) { size(); M._tb_fit(); } });
   const fb = new Uint8Array(font), fp = M._malloc(fb.length); M.HEAPU8.set(fb, fp);
   withStr(data, p => M._tb_init(p, fp, fb.length));
   M._free(fp);   // フォントは C++ 側がコピーして持つ
+  // 東京都の外周と 23 区の区界（目印、薄く）。国土数値情報 N03
+  try { const admin = await fetch('admin_tokyo.txt').then(r => r.text()); withStr(admin, p => M._tb_admin(p)); } catch (e) {}
   size(); M._tb_fit();
   document.getElementById('msg').remove();
   requestAnimationFrame(frame);

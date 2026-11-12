@@ -25,6 +25,7 @@ int main(int argc, char** argv) {
     tb::Map m;
     auto t0 = std::chrono::steady_clock::now();
     if (!m.load(data, (const unsigned char*)font.data(), font.size())) { fprintf(stderr, "cannot load %s\n", argv[1]); return 1; }
+    { std::string a = read_all("data/admin_tokyo.txt"); if (!a.empty()) m.load_admin(a); }   // 東京都の外周と 23 区
     printf("poles %zu, patterns %zu, routes %zu, rails %zu (load %.0f ms)\n", m.poles.size(), m.pats.size(), m.routes.size(), m.rails.size(),
            std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count());
     m.resize(W, H); m.fit();

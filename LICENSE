@@ -1,8 +1,9 @@
 BSD 3-Clause License
 
 This license applies to this repository's own source code. The bus data (data/tobus.txt, docs/tobus.txt) is
-derived from ODPT (Tokyo Metropolitan Bureau of Transportation), the subway tracks in it are CC BY 4.0
-(MLIT National Land Numerical Information, N02-24), and the font (fonts/, docs/font.ttf) is SIL OFL 1.1
+derived from ODPT (Tokyo Metropolitan Bureau of Transportation), the subway tracks in it and the Tokyo
+prefecture / 23-ward boundaries (data/admin_tokyo.txt, docs/admin_tokyo.txt) are CC BY 4.0 (MLIT National
+Land Numerical Information, N02-24 and N03), and the font (fonts/, docs/font.ttf) is SIL OFL 1.1
 (Noto Sans JP). See README.md.
 
 

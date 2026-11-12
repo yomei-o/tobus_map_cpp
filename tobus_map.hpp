@@ -106,6 +106,7 @@ struct Map {
     std::vector<Pattern> pats;
     std::vector<Route> routes;
     std::vector<Rail> rails;
+    std::vector<std::vector<P2>> admin_pref, admin_ward;   // 東京都の外周・23 区の区界（目印、薄く）。m 座標
     std::map<std::string, int> pole_of, pat_of;
     std::vector<Bus> buses;
     Font font;
@@ -293,6 +294,24 @@ struct Map {
     }
 
     // ---- 描画 ----
+    // 東京都の外周と 23 区の区界を読む（data/admin_tokyo.txt、lon,lat）。m 座標（to_m）に直して持つ
+    int load_admin(const std::string& text) {
+        admin_pref.clear(); admin_ward.clear();
+        std::istringstream in(text); std::string ln; int which = -1;   // 0=pref 1=ward
+        while (std::getline(in, ln)) {
+            if (ln.empty() || ln[0] == '#') continue;
+            if (ln.rfind("pref", 0) == 0) { which = 0; continue; }
+            if (ln.rfind("ward", 0) == 0) { which = 1; continue; }
+            if (ln.rfind("ring ", 0) == 0 && which >= 0) {
+                std::vector<P2> r; std::istringstream ls(ln.substr(5)); std::string tok;
+                while (ls >> tok) { size_t c = tok.find(','); if (c == std::string::npos) continue; r.push_back(to_m(std::stod(tok.substr(0, c)), std::stod(tok.substr(c + 1)))); }
+                if (r.size() >= 2) (which == 0 ? admin_pref : admin_ward).push_back(std::move(r));
+            }
+        }
+        dirty_base = true;
+        return (int)(admin_pref.size() + admin_ward.size());
+    }
+
     void draw_base() {
         Rgb top = lin({0.02f, 0.03f, 0.05f}), bot = lin({0.01f, 0.012f, 0.025f});
         for (int y = 0; y < H; ++y) {
@@ -315,6 +334,9 @@ struct Map {
         };
         // 地下鉄（目印、薄く）
         for (auto& r : rails) polyline(base, scr(r.pts), std::max(1.f, px(1.4f)), hex(r.color), 0.22f);
+        // 東京都の外周と 23 区の区界（目印、薄く）
+        for (auto& r : admin_ward) polyline(base, scr(r), std::max(1.f, px(1.0f)), {0.26f, 0.31f, 0.44f}, 0.22f);
+        for (auto& r : admin_pref) polyline(base, scr(r), std::max(1.f, px(1.3f)), {0.36f, 0.42f, 0.56f}, 0.33f);
         // 系統の道：全部を 1 枚に集めて、光らせてから塗る
         const float lw = std::clamp((float)(scale * 9), px(0.8f), px(3.0f));
         mask.clear();
@@ -449,7 +471,7 @@ struct Map {
                 buttons.push_back({cx, ry, cx + cw, ry + rowh, ROW0 + order[i]});
             }
         }
-        std::string src = "バスの位置・系統・停留所：ODPT（東京都交通局）　地下鉄の線路：国土数値情報　文字：Noto Sans JP";
+        std::string src = "バスの位置・系統・停留所：ODPT（東京都交通局）　地下鉄・区界：国土数値情報　文字：Noto Sans JP";
         text(cv, std::max(px(16), W - px(16) - tw(src, 10)), H - px(16), src, 10, {0.45f, 0.5f, 0.58f});
     }
 
