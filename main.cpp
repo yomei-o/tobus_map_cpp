@@ -1,6 +1,6 @@
 // tobus_map — ネイティブで都営バスの地図を PNG に描く（WASM と同じ tobus_map.hpp）
 //   tobus_map <data/tobus.txt> <fonts/NotoSansJP-Bold-subset.ttf> <out_prefix> <W> <H> <bus1.json> [bus2.json ...]
-//   バスの JSON（odpt:Bus）を 30 秒おきに届いたものとして順に渡す → <out>_all.png, <out>_zoom.png, <out>_route.png
+//   バスの JSON（odpt:Bus）を 30 秒おきに届いたものとして順に渡す → <out>_all.png, <out>_zoom.png, <out>_route.png, <out>_here.png
 #define _CRT_SECURE_NO_WARNINGS
 #include <chrono>
 #include <cstdio>
@@ -58,5 +58,11 @@ int main(int argc, char** argv) {
     m.fit();
     auto order = m.route_order();
     if (!order.empty()) { m.select_route(order[0]); shot("route"); }
+    // 現在地：都内（東京駅）なら赤い丸を出す。都の外（横浜駅）なら出さない → <out>_here.png
+    m.select_route(-1);
+    printf("here: yokohama -> %d (0 = outside)\n", m.set_here(35.4658, 139.6223));
+    printf("here: tokyo st -> %d (1 = inside)\n", m.set_here(35.6812, 139.7671));
+    m.center = m.here; m.scale = 0.3; m.dirty_base = true;
+    shot("here");
     return 0;
 }

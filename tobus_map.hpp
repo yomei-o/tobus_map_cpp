@@ -6,6 +6,7 @@
 //   m.set_buses(odpt_bus_json);          // ODPT の odpt:Bus（都営はキー無し）を受け取るたびに（約 30 秒ごと）
 //   m.tick(dt, unix_seconds); const uint8_t* rgba = m.render();
 //   m.hover(x, y); m.click(x, y); m.pan(dx, dy); m.zoom(f, x, y);
+//   m.set_here(lat, lon);                // 現在地（スマホの GPS など）。東京都（本土）の中のときだけ赤い丸で出す
 //
 // バスの位置: ODPT が教えてくれるのは「どのバス停を何時に出て（fromBusstopPoleTime）、次はどのバス停か」。
 // そのあいだを、系統の道の形に沿って、平均 4 m/s（約 14 km/h、信号待ちこみ）で進める。次のバス停に着いたと言われるまでは 95% の手前で待つ。
@@ -126,6 +127,9 @@ struct Map {
     struct Hub { std::string name; P2 p; int n; };
     std::vector<Hub> hubs;            // 系統がたくさん集まるバス停（名前を出す順）
     static constexpr double V = 4.0;  // バスの平均の速さ（m/s）
+    // 現在地（ページが navigator.geolocation から受け取って渡す）。都内（本土）のときだけ赤い丸で出す
+    bool here_on = false;             // いま地図に出しているか（都内で取れた）
+    P2 here;                          // m 座標
 
     // ---- 読み込み ----
     bool load(const std::string& text, const unsigned char* font_bytes, size_t font_n) {
@@ -310,6 +314,36 @@ struct Map {
         }
         dirty_base = true;
         return (int)(admin_pref.size() + admin_ward.size());
+    }
+
+    // ---- 現在地 ----
+    // 点 p が多角形の輪たちの内側か（偶奇則。穴があっても正しく数える）
+    static bool inside(const std::vector<std::vector<P2>>& rings, P2 p) {
+        bool in = false;
+        for (auto& r : rings)
+            for (size_t i = 0, j = r.size() - 1; i < r.size(); j = i++)
+                if ((r[i].y > p.y) != (r[j].y > p.y) && p.x < (r[j].x - r[i].x) * (p.y - r[i].y) / (r[j].y - r[i].y) + r[i].x) in = !in;
+        return in;
+    }
+    // 東京都（本土）の中か。外周がまだ読めていなければ、おおまかな矩形で
+    bool in_tokyo(double lat, double lon) const {
+        if (!admin_pref.empty()) return inside(admin_pref, to_m(lon, lat));
+        return lon > 138.94 && lon < 139.93 && lat > 35.50 && lat < 35.90;
+    }
+    // 戻り値は 1 = 都内（赤い丸を出す）、0 = 都の外（出さない）
+    int set_here(double lat, double lon) {
+        here_on = in_tokyo(lat, lon);
+        here = to_m(lon, lat);
+        return here_on;
+    }
+    void clear_here() { here_on = false; }
+    // 現在地の印：白い縁の赤い丸
+    void draw_here(Canvas& cv) {
+        if (!here_on) return;
+        V2 p = to_screen(here);
+        if (p.x < -20 || p.y < -20 || p.x > W + 20 || p.y > H + 20) return;
+        disc(cv, p, px(8), {1, 1, 1}, 1.f);
+        disc(cv, p, px(6), {0.95f, 0.15f, 0.15f}, 1.f);
     }
 
     void draw_base() {
@@ -543,6 +577,7 @@ struct Map {
         if (dirty_info) { info.px = base.px; draw_panels(info); dirty_info = false; }
         frame.px = info.px;
         const float lw = std::clamp((float)(scale * 14), px(1.4f), px(4.0f));
+        draw_here(frame);   // バスより下に（近くのバスが隠れないように）
         for (auto& b : buses) if (sel_route >= 0 && pats[b.pat].route != sel_route) draw_bus(frame, b, lw, true);
         for (auto& b : buses) if (sel_route < 0 || pats[b.pat].route == sel_route) draw_bus(frame, b, lw * (sel_route >= 0 ? 1.3f : 1.f), false);
         draw_tip(frame);

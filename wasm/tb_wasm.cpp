@@ -20,6 +20,9 @@ EMSCRIPTEN_KEEPALIVE int tb_buses(const char* json) { return g.set_buses(json); 
 // 東京都の外周と 23 区の区界（data/admin_tokyo.txt）。戻り値は読み込んだ輪の数。目印として薄く描く
 EMSCRIPTEN_KEEPALIVE int tb_admin(const char* text) { return g.load_admin(text); }
 EMSCRIPTEN_KEEPALIVE void tb_fail() { g.fetch_failed(); }
+// 現在地（緯度・経度）。東京都（本土）の中なら赤い丸を出して 1、外なら出さずに 0。tb_here_off で消す
+EMSCRIPTEN_KEEPALIVE int tb_here(double lat, double lon) { return g.set_here(lat, lon); }
+EMSCRIPTEN_KEEPALIVE void tb_here_off() { g.clear_here(); }
 // 操作。tb_hit はその点にボタンや一覧があるか（あればドラッグを始めない）
 EMSCRIPTEN_KEEPALIVE void tb_hover(double x, double y) { g.hover(x, y); }
 EMSCRIPTEN_KEEPALIVE int tb_hit(double x, double y) { return g.hit(x, y); }
