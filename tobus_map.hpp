@@ -337,13 +337,18 @@ struct Map {
         return here_on;
     }
     void clear_here() { here_on = false; }
-    // 現在地の印：白い縁の赤い丸
+    // 現在地の印：列車・バスと同じ光る玉（赤）。ゆっくり息をするように光の大きさが変わる
     void draw_here(Canvas& cv) {
         if (!here_on) return;
         V2 p = to_screen(here);
-        if (p.x < -20 || p.y < -20 || p.x > W + 20 || p.y > H + 20) return;
-        disc(cv, p, px(8), {1, 1, 1}, 1.f);
-        disc(cv, p, px(6), {0.95f, 0.15f, 0.15f}, 1.f);
+        if (p.x < -40 || p.y < -40 || p.x > W + 40 || p.y > H + 40) return;
+        const Rgb red{1.0f, 0.18f, 0.15f};
+        float breathe = 0.5f + 0.5f * (float)std::sin(wall * 2.5);   // 0..1、約 2.5 秒で 1 回
+        glow_dot(cv, p, px(26) + px(8) * breathe, red, 0.75f + 0.25f * breathe);   // 外の光
+        glow_dot(cv, p, px(12), red, 1.0f);                                    // 内の光
+        disc(cv, p, px(8), {0.08f, 0.01f, 0.01f}, 0.85f);                         // 細い暗い縁（明るい線の上でも見えるように）
+        disc(cv, p, px(6.5f), red, 1.f);                                        // 芯（赤のまま）
+        glow_dot(cv, p, px(4.5f), {1, 0.85f, 0.8f}, 0.9f);                       // 真ん中の白いきらめき
     }
 
     void draw_base() {
@@ -577,9 +582,9 @@ struct Map {
         if (dirty_info) { info.px = base.px; draw_panels(info); dirty_info = false; }
         frame.px = info.px;
         const float lw = std::clamp((float)(scale * 14), px(1.4f), px(4.0f));
-        draw_here(frame);   // バスより下に（近くのバスが隠れないように）
         for (auto& b : buses) if (sel_route >= 0 && pats[b.pat].route != sel_route) draw_bus(frame, b, lw, true);
         for (auto& b : buses) if (sel_route < 0 || pats[b.pat].route == sel_route) draw_bus(frame, b, lw * (sel_route >= 0 ? 1.3f : 1.f), false);
+        draw_here(frame);   // バスの上に（光は足し算なので、近くのバスは透けて見える）
         draw_tip(frame);
         frame.to_rgba(rgba.data());
         return rgba.data();
