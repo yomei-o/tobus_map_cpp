@@ -145,11 +145,15 @@ addEventListener('resize', () => { if (M) { size(); M._tb_fit(); } });
   document.getElementById('msg').remove();
   requestAnimationFrame(frame);
   pollBuses();
-  // 現在地：ブラウザから緯度・経度をもらって渡すだけ。都内かどうかの判定と赤い丸は C++ が
-  if (navigator.geolocation) navigator.geolocation.watchPosition(
-    pos => M._tb_here(pos.coords.latitude, pos.coords.longitude),
-    () => M._tb_here_off(),
-    { enableHighAccuracy: true, maximumAge: 10000 });
+  // 現在地：ブラウザから緯度・経度をもらって渡すだけ。都内かどうかの判定と赤い丸は C++ が。
+  // iPhone Safari は高精度 GPS を屋内で取れず、タイムアウトが無いと出ないまま → 高精度オフ＋タイムアウト＋初回取得
+  if (navigator.geolocation) {
+    const ok = pos => M._tb_here(pos.coords.latitude, pos.coords.longitude);
+    const ng = () => M._tb_here_off();
+    const opt = { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 };
+    navigator.geolocation.getCurrentPosition(ok, ng, opt);
+    navigator.geolocation.watchPosition(ok, ng, opt);
+  }
 })().catch(err => document.getElementById('msg').textContent = '読み込みに失敗: ' + err);
 </script>
 </body>
